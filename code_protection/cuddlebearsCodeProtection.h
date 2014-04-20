@@ -4,6 +4,7 @@
 
 #define NAME_LEN 50
 #define FILE_LEN 100
+#define PW_LEN 24
 #define NUM_DUMMIES 5
 #define MAX_ATTEMPTS 5
 #define LINE_LEN 100
@@ -11,7 +12,7 @@
 #define DIGITS "0123456789"
 #define HASH_LENGTH 32
 #define SALT_LENGTH 8
-#define INT_LEN 11
+#define INT_LEN 7
 #define EXTENSION ".txt"
 #define EXT_LEN 4
 #define TEMPLATE "_[A-Za-z0-9./]{8}"
@@ -29,8 +30,7 @@ int min_string_len(char* a, char *b);
 int non_alpha_chars(char* s);
 void append_extension(char **s);
 void init_password(FILE * data);
-int encrypt_password(char **pw, const unsigned char *s, FILE * data) ;
-int convert( uint32_t n );
+int encrypt_password(char **pw, FILE * data) ;
 char* generate_salt();
 int verify_password(FILE* data);
-
+void flush();

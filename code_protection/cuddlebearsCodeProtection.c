@@ -5,9 +5,6 @@
 #include <limits.h>
 #include <openssl/evp.h>
 
-#include "mtwist.h"
-#include "randistrs.h"
-#include "gensalt.h"
 #include "cuddlebearsCodeProtection.h"
 
 /* gensalt.c, gensalt.h and their makefile obtained from
@@ -19,10 +16,6 @@ int main()
 	FILE *data_file, *infile, *outfile;
 	int a, b;
 	
-	/* seed the rng */
-	mt_seed32(mt_goodseed());
-	srand (time(NULL));
-	
 	/* open the data file */
 	data_file = open_file(DATA_FILE, "rw");
 	
@@ -31,12 +24,13 @@ int main()
 	
 	/* get 2 integers from the user */
 	a = get_int();
-	b = get_int();	
-	
+	b = get_int();
+	flush();	
+
 	/* get input and output file names from the user */
 	get_fname(&in, 0);
 	get_fname(&out, 1);
-	
+
 	/* if the filenames are the same, add a 1 to the end of the outfile name */
 	if(!strncmp(in, out, min_string_len(in, out))) {
 		temp = out;
@@ -64,11 +58,13 @@ int main()
 		return 0;
 	}
 	
+	fclose(data_file);
+	
 	/* open input and output files	*/
 	infile = open_file(in, "r");
 	outfile = open_file(out, "w");	
 
-	fprintf(outfile, "%s %s\n", first_name, last_name);
+	fprintf(outfile, "%s\n%s\n", first_name, last_name);
 	fprintf(outfile, "%d + %d = %d\n", a, b, a+b);
 	fprintf(outfile, "%d * %d = %d\n", a, b, a*b);
 	
@@ -86,7 +82,7 @@ int main()
 	/* close files	*/
 	fclose(infile);
 	fclose(outfile);
-	fclose(data_file);	
+	/* fclose(data_file); */	
 		
 	return 0;
 } /* end main */
@@ -107,19 +103,28 @@ FILE* open_file(char* fname, const char * mode)
 /* get a name from the user */
 void get_name(char **name, int lname)
 {
+	char temp[60];
 	*name = NULL;
 	
-	while( name == NULL ) {
+	while( *name == NULL ) {
 		if(!lname) {
 			printf("Enter your first name: ");
 		} else {
 			printf("Enter your last name: ");
 		}
-		fgets((*name), NAME_LEN, stdin);
-		printf("\n");
+		if( fgets(temp, NAME_LEN, stdin) != NULL ){
+			/* get rid of the newline character */
+			if (temp[strlen(temp)-1] == '\n') {
+				temp[strlen(temp)-1] = '\0';
+			}
+		}
 		
-		if( !valid_name(*name) ) {
-			printf("That name input is not valid\n");	
+		if( !valid_name(temp) ) {
+			printf("That name input is not valid\n");
+		} else {
+			/* +1 to null terminate */
+			*name = (char*) malloc(sizeof(strlen(temp)+1) * sizeof(char));
+			strncpy(*name, temp, strlen(temp));
 		}
 	}
 } /* end get_name */
@@ -137,13 +142,12 @@ int valid_name(char *name)
 	
 	/* if a every char of the name is not a letter or an 
 	 * apostrophe, it is not valid */
-	for(i = 0; i < strlen(name); i++){
-		if(!isalpha(name[i]) || name[i] != '\''){
+	for(i = 0; i < strlen(name)-1; i++){
+		if(!isalpha(name[i]) && name[i] != '\'') {
 			printf("invalid character in the name\n");
 			return 0;
 		}
 	}
-	
 	return 1;
 }
 
@@ -155,7 +159,7 @@ int get_int()
 	
 	/* might need more protection in here */
 	while(!is_valid) {
-		printf("Enter an integer\n");
+		printf("Enter an integer: ");
 		fscanf(stdin, "%s", check);
 		
 		/* check if the input is valid */
@@ -176,6 +180,7 @@ int valid_int(char* candidate)
 {
 	long int l;
 	int i;
+	char temp[2];
 	
 	/* check if the user input is too long to be an integer */
 	if(strlen(candidate) > INT_LEN) {
@@ -185,7 +190,9 @@ int valid_int(char* candidate)
 	
 	/* check that every element of the string is a digit */	
 	for( i = 0; i < strlen(candidate); i++ ) {
-		if( strstr(DIGITS, &candidate[i]) == NULL ) {
+		temp[0] = candidate[i];
+		temp[1] = '\0';
+		if( strstr(DIGITS, temp) == NULL && (i !=0 && candidate[i] != '-')) {
 			printf("integer must include only digits\n");
 			return 0;
 		}
@@ -208,30 +215,41 @@ int valid_int(char* candidate)
 /* get a filename from the user */
 void get_fname(char** file, int outfile)
 {
+	char temp[110];
 	*file = NULL;
 
 	/* keep trying to get a filename util the user gives valid input */
 	while(*file == NULL) {
-		if(!file) {
+		if(!outfile) {
 			printf("Enter the name of the input file (without file extension): ");
 		} else {
 			printf("Enter the name of the output file (without file extension): ");
 		}
-		fgets(*file, FILE_LEN, stdin);
 		
-		/* check that the file name was read in properly */
-		if(*file == NULL) {
+		/* check that the file name was read in properly */		
+		if( fgets(temp, FILE_LEN, stdin) == NULL ){
 			printf("No file input found\n");
 			continue;
 		/* check that all chars are alphanumberic */
-		} else if(non_alpha_chars(*file)){
+		}
+		
+		/* get rid of the newline character */
+		if (temp[strlen(temp)-1] == '\n') {
+			temp[strlen(temp)-1] = '\0';
+		}
+		
+		if(non_alpha_chars(temp)){
 			printf("Invalid characters\n");
 			continue;
 		/* make sure the file name is not the same as the file that holds data */	
-		} else if(strncmp(*file, "data", 5)) {
+		} else if(!strncmp(temp, "data", 5)) {
 			printf("Cannot use that filename\n");
 			continue;
-		} 
+		} else {
+			/* +1 to null terminate */
+			*file = (char*) malloc(sizeof(strlen(temp)+1) * sizeof(char));
+			strncpy(*file, temp, strlen(temp));
+		}		
 	}
 }
 
@@ -248,18 +266,16 @@ int min_string_len(char* a, char *b)
 /* check that all characters in a string are alphanumeric */
 int non_alpha_chars(char* s)
 {
-	int i;
-	
+	int i;	
 	for( i = 0; i < strlen(s); i++) {
+		
 		/* checks if the character is a letter */
-		if(!isalpha(s[i])) {
-			/* checks if the char is a number */
-			if( strstr(DIGITS, &s[i]) == NULL ) {
-				return 0;
-			}
+		if(!isalnum(s[i])) {
+			printf("%c, %d\n", s[i], i);
+			return 1;
 		}
 	}
-	return 1;
+	return 0;
 }
 
 /* append the defined file extension to a filename */
@@ -276,36 +292,17 @@ void append_extension(char **s)
 	strcat(new_str, *s);
 	strcat(new_str, EXTENSION);
 	
-	free(s);
 	*s = new_str;
 }
 
 void init_password(FILE * data)
 {
-	/* create a few dummy pw's
-	 * get the password from the user then begin salting and hashing
-	 * the dummy passwords into the file and salt and hash the user's pw
-	 * into the file at a random point during that filling */
-	char ** dummies = malloc(sizeof(char*) * NUM_DUMMIES);
 	char temp[50];
 	char *pw;
-	int i, pos, valid_pw = 0;
-	
-	if(dummies == NULL) {
-		fprintf(stderr, "Could not allocate string holder!\n");
-		exit(EXIT_FAILURE);
-	}
-	
-	for( i = 0; i < NUM_DUMMIES; i++) {
-		dummies[i] = generate_salt();
-	}
-	
-	/* determine when to write the user's pw
-	 * need to check the length of ints on my system to see if this works */
-	pos = (int) rd_iuniform(INT_MIN, INT_MAX) % NUM_DUMMIES;
+	int valid_pw = 0;
 	
 	while(!valid_pw){
-		printf("Enter your password (6-24 characters):\n");
+		printf("Enter your password (6-24 characters): ");
 		fgets(temp, sizeof(temp)/sizeof(char) -1, stdin);
 		
 		if( strlen(temp) < 6 || strlen(temp) > 24 ) {
@@ -318,45 +315,28 @@ void init_password(FILE * data)
 			fprintf(stderr, "Password memory allocation failed\n");
 			exit(EXIT_FAILURE);
 		}
-		
+	
 		/* copy the password into its holder */
 		strncpy(pw, temp, strlen(temp));
+		valid_pw = 1;
 	}
 	
-	for( i = 0; i < NUM_DUMMIES;){
-		/* if it is the position we generated, encrypt the user's pw */
-		if( i == pos ) {
-			while(encrypt_password(&pw, NULL, data)){
-				fprintf(stderr, "password encryption failed\n");
-				continue;
-			}
-		}
-		
-		/* otherwise encrypt a dummy password */
-		while(encrypt_password(&dummies[i++], NULL, data)){
-			fprintf(stderr, "password encryption failed\n");
+	while(encrypt_password(&pw, data)){
+		fprintf(stderr, "password encryption failed\n");
 			continue;
-		}
-	} 
-	
+	}
 }
 	
 /* slightly modified from the resposnse by indiv at:
  * http://stackoverflow.com/questions/9488919/openssl-password-to-key */
-int encrypt_password(char **pw, const unsigned char* s, FILE * data) 
+int encrypt_password(char **pw, FILE * data) 
 {
 	const EVP_CIPHER *cipher;
     const EVP_MD *dgst = NULL;
     unsigned char key[EVP_MAX_KEY_LENGTH], iv[EVP_MAX_IV_LENGTH];
     unsigned char *password = (unsigned char*) *pw;
-    const unsigned char *salt;
+    const unsigned char *salt = NULL;
     int i;
-
-	if( s == NULL ) {
-		salt = (unsigned char*) generate_salt();
-	} else {
-		salt = s;
-	}
 
     OpenSSL_add_all_algorithms();
 
@@ -373,10 +353,6 @@ int encrypt_password(char **pw, const unsigned char* s, FILE * data)
         fprintf(stderr, "EVP_BytesToKey failed\n");
         return 1;
     }
-    
-    if( s == NULL ){
-		fprintf(data, "%s, %s\n", key, salt);
-	}
 	
 	*pw = (char*) key;
 
@@ -384,94 +360,50 @@ int encrypt_password(char **pw, const unsigned char* s, FILE * data)
     printf("Key: "); for(i=0; i<cipher->key_len; ++i) { printf("%02x", key[i]); } printf("\n");
     printf("IV: "); for(i=0; i<cipher->iv_len; ++i) { printf("%02x", iv[i]); } printf("\n");
     
+    fprintf(data, "%s\n", key);
+    
     return 0;
 	
 }
 
-/* the setup is just so that it is the function prototype allows
- * to send it to getnsalt */
-int rand_num(int n) 
-{
-	return (int) rd_iuniform((int32_t) INT_MIN, (int32_t) INT_MAX);
-}
-
-/* Create a salt value for encrypting the password */
-char* generate_salt()
-{
-	/* The template for short MD5 for gensalt */
-	char *template = (char*) malloc(sizeof(TEMPLATE)+sizeof(char));
-	char * result = NULL;
-	int (*foo)(int) = &rand_num;
-	
-	if(template == NULL) {
-		printf("failed to generate template holder\n");
-		exit(EXIT_FAILURE);
-	}
-	
-	strncpy(template, TEMPLATE, sizeof(TEMPLATE) / sizeof(char));
-	template[sizeof(template)/sizeof(char)-1] = '\0'; 
-	
-	while(result == NULL) {
-		/* this typecast is sketchy, but I don't think it will matter that
-		 * much with a small scale example like this */
-		result = gensalt(template, foo);
-		
-		if(result == NULL) {
-			fprintf(stderr, "Salt error\n");
-		}
-	}
-	
-	free(template);
-	
-	return result;	
-}
-
 int verify_password(FILE* data)
 {
-	char temp[50];
-	char *pw, *line, *hash, *salt;
-	int i, valid_pw = 0;
+	char temp[110];
+	char *pw, *line, *hash;
+	int valid_pw = 0;
 	
-	line = hash = salt = NULL;	
-	i = 0;
-	while(!valid_pw){
-		if( i >= MAX_ATTEMPTS ) {
-			printf("Too many failed login attempts. Try again later\n");
-			return 0;
-		}
-		
-		printf("Enter your password (6-24 characters):\n");
-		fgets(temp, sizeof(temp)/sizeof(char) -1, stdin);
+	line = hash = NULL;
+	while(!valid_pw){		
+		printf("Verify your password (6-24 characters): ");
+		fgets(temp, PW_LEN, stdin);
 		
 		if( strlen(temp) < 6 || strlen(temp) > 24 ) {
 			printf("Password not in size range\n");
-			i++;
 			continue;
 		}  
 		
 		/* copy the password into its holder */
+		pw = (char*) malloc((sizeof(temp)/sizeof(char)) + 1);
 		strncpy(pw, temp, strlen(temp));
+		break;
 	}
 	
 	/* repeat this until eof */
-	while(fgets(line, LINE_LEN, data)) {
+	while(fgets(temp, LINE_LEN, data) != NULL) {
 	
-		/* use strtok */
-		hash = strtok(line, DELIMIT);
-		salt = strtok(line, DELIMIT);
+		hash = strtok(temp, DELIMIT);
 			
-		if( hash == NULL || salt == NULL ) {
+		if( hash == NULL ) {
 			fprintf(stderr, "Error: data.txt has been tampered with\n");
 			printf("password storage error.\n");
 			return 1;
-		} else if (strlen(hash) != HASH_LENGTH || strlen(salt) != SALT_LENGTH ||
-				   strtok(line, DELIMIT) != NULL) {
+		} else if (strlen(hash) != HASH_LENGTH || strtok(line, DELIMIT) != NULL) {
 			fprintf(stderr, "The data has been corrupted\n");
 			printf("password file corruption\n");
 			return 1;
 		}
 		
-		if( encrypt_password(&pw, (unsigned char*) salt, data) ) {
+		if( encrypt_password(&pw, data) ) {
 			return 1;
 		} 
 		
@@ -485,3 +417,10 @@ int verify_password(FILE* data)
 	return 1;
 }
 
+/* posted by jscmier at :
+ * http://stackoverflow.com/questions/2187474/i-am-not-able-to-flush-stdin */
+void flush()
+{
+	int c;
+	while ((c = getchar()) != '\n' && c != EOF);
+}
