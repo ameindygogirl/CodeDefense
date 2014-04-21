@@ -1,0 +1,116 @@
+import java.io.*;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+	
+public final class DefendTheFort // changed class to final
+{
+	private static Scanner kb = null;		// added global variables
+	private static Validater validater = null;
+	
+    public static void main(String[] args)
+    {
+			kb = new Scanner(System.in); //allocate scanner
+			
+			validater = new Validater();
+			
+			String inputFile = outputFile = "";
+			inputFile = getInputFile();		
+			outputFile = getOutputFile();
+			
+			System.out.println("Filename is: " + outputFile );
+	   }
+
+    private static String getOutputFile()
+    {
+        String name = ""; 
+        boolean isValid;
+        	// asking user for only the name of the file without extension and adding ".txt" 
+        	// if input is validated
+        while ( !isValid )
+        	{
+        		try{
+        				System.out.print("Please enter the output file name WITHOUT extension: ");
+        				name = kb.nextLine();
+        				isValid = validater.validateString( name );
+        		}
+        		catch( NoSuchElementException e ) {
+        			System.err.println("\nError: "+ e.getMessage() );
+        			e.printStackTrace();	//remove printstacktrace later
+        			break;
+        	   	}
+        	}
+        name += ".txt";	
+        return name; //change method return type to void and instead call a method that
+        						//will create the file.
+    }
+    
+    private static String getInputFile()
+    {
+        String name = ""; 
+        boolean isValid;
+        	// asking user for only the name of the file without extension and adding ".txt" 
+        	// if input is validated
+        while ( !isValid )
+        	{
+        		try{
+        				System.out.print("Please enter the input file name WITHOUT extension: ");
+        				name = kb.nextLine();
+        				isValid = validater.validateString( name );
+        		}
+        		catch( NoSuchElementException e ) {
+        			System.err.println("\nError: "+ e.getMessage() );
+        			e.printStackTrace();	//remove printstacktrace later
+        			break;
+        	   	}
+        	}
+        name += ".txt";	
+        return name; //change method return type to void and instead call a method that
+        						//will create the file.
+    }    
+    
+    private static int getFirstInteger()
+    {
+    	long firstInt;
+    	boolean isValid;
+    	
+    	while ( !isValid )
+    	{
+    		try {
+    			System.out.print("Please integer #1, ( < 2,147,483,647 ): ");
+    			firstInt = kb.nextInt();    			
+    			kb.nextLine();
+    			
+    			isValid = validater.validateInt( firstInt );
+    		}
+    		catch ( NoSuchElementException e ) {
+    			System.err.println("\nError: "+ e.getMessage() );
+    			e.prinStackTrace();
+    			break;
+    		}
+    	}
+    }
+    
+    private static int getNextInteger()
+    {
+    	long secondInt;
+    	boolean isValid;
+    	
+    	while ( !isValid )
+    	{
+    		try {
+    			System.out.print("Please integer #2, ( < 2,147,483,647 ): ");
+    			secondInt = kb.nextInt();    			
+    			kb.nextLine();
+    			
+    			isValid = validater.validateInt( secondInt );
+    		}
+    		catch ( NoSuchElementException e ) {
+    			System.err.println("\nError: "+ e.getMessage() );
+    			e.prinStackTrace();
+    			break;
+    		}
+    }
+}
+	
+ 
