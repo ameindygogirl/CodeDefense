@@ -1,0 +1,14 @@
+We defended against:
+-Names longer than 50 characters
+-Names containing numbers
+-Names containing special characters
+-Names containing tabs
+-Empty lines for names
+-Spaces in names
+
+-Absolute pathnames
+-File formats other than .txt
+
+-Numbers too large to fit in int (2147483648) //Doesn't allow for multiple inputs
+-Numbers too small to fit in int (-2147483649) //Doesn't allow for multiple inputs
+-Special characters and letters //Doesn't allow for multiple inputs
