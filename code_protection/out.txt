@@ -1,8 +1,8 @@
 bryan
 anders
-123423 + 1 = 123424
-123423 * 1 = 123423
-This is the input file
-wheeeeeeeeee
-wheeeeeeeeeeeeeeeeeeeeeeee
-wheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+1123 + 1 = 1124
+1123 * 1 = 1123
+bryan
+anders
+0 + 0 = 0
+0 * 0 = 0

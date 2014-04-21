@@ -2,7 +2,7 @@
 all: code_protection
 
 code_protection: cuddlebearsCodeProtection.o
-	gcc cuddlebearsCodeProtection.o -o code_protection -lcrypto
+	gcc cuddlebearsCodeProtection.o -o code_protection
 
 cuddlebearsCodeProtection.o: cuddlebearsCodeProtection.c cuddlebearsCodeProtection.h
 	gcc -Wall -ansi -pedantic -c cuddlebearsCodeProtection.c

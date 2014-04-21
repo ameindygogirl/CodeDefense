@@ -12,12 +12,13 @@
 
 int main()
 {
-	char *first_name, *last_name, *in, *out, *temp, line[FILE_LEN];
-	FILE *data_file, *infile, *outfile;
+	char *first_name, *last_name, *in, *out, *temp, *pw, line[FILE_LEN];
+	/*FILE *data_file*/
+	FILE *infile, *outfile;
 	int a, b;
 	
 	/* open the data file */
-	data_file = open_file(DATA_FILE, "rw");
+	/*data_file = open_file(DATA_FILE, "rw");*/
 	
 	get_name(&first_name, 0);
 	get_name(&last_name, 1);
@@ -50,15 +51,12 @@ int main()
 	append_extension(&out);
 	
 	/* get the user's pw and store it */
-	init_password(data_file);	
+	init_password(&pw);	
 	
 	/* ask the user for their pw and verify it */
-	if(!verify_password(data_file)) {
-		printf("Password verification failed. Exiting\n");
-		return 0;
+	while(!verify_password(&pw)) {
+		printf("Password verification failed. Try Again\n");
 	}
-	
-	fclose(data_file);
 	
 	/* open input and output files	*/
 	infile = open_file(in, "r");
@@ -82,7 +80,7 @@ int main()
 	/* close files	*/
 	fclose(infile);
 	fclose(outfile);
-	/* fclose(data_file); */	
+	/*fclose(data_file);*/
 		
 	return 0;
 } /* end main */
@@ -142,7 +140,7 @@ int valid_name(char *name)
 	
 	/* if a every char of the name is not a letter or an 
 	 * apostrophe, it is not valid */
-	for(i = 0; i < strlen(name)-1; i++){
+	for(i = 0; i < strlen(name); i++){
 		if(!isalpha(name[i]) && name[i] != '\'') {
 			printf("invalid character in the name\n");
 			return 0;
@@ -192,11 +190,20 @@ int valid_int(char* candidate)
 	for( i = 0; i < strlen(candidate); i++ ) {
 		temp[0] = candidate[i];
 		temp[1] = '\0';
-		if( strstr(DIGITS, temp) == NULL && (i !=0 && candidate[i] != '-')) {
+		if( strstr(DIGITS, temp) == NULL && 
+		  (i !=0 && candidate[i] != '-' && strlen(candidate) == 1)) {
+			
 			printf("integer must include only digits\n");
 			return 0;
 		}
 	}
+	
+	/* check for integers that are of the same legth as INT_MAX and INT_MIN for overrun */
+	if(check_overflow(candidate)) {
+		printf("Integer causes overflow\n");
+		return 0;
+	}
+
 		
 	/* above verified that the int is short enough to fit in a 
 	 * long long int and is comprised of valid digits */
@@ -211,6 +218,64 @@ int valid_int(char* candidate)
 		
 	return 1;
 }
+
+/* need to finish this check
+ * not sure if i'm incrementing in the right direction 
+ * 
+ * A long, cascading, and difficult to follow if*/
+int check_overflow(char* s)
+{
+	int spacer, val, i;
+	/* this could be vulnerable to modification in a hex editor */
+	static int max_int_arr[] = {2,1,4,7,4,8,3,6,4,7};
+	char temp[2];
+	
+	/*test printing out max_int_arr */
+	
+	if(strlen(s) < 10 ) {
+		/*if int is this short it is not long enough to trigger overlow, 
+		 * assuming 4 byte integers, which isn't always a safe assumption*/
+		return 0;
+	}
+	
+	/* if a non negative number is of INT_LEN length, then it is 1 digit too long */
+	if(strlen(s) == INT_LEN && strstr(s, "-") == NULL) {
+		return 1;
+	}
+
+	/* adjust the element being referenced based on 
+	 * whether or not the number is negative */
+	if(strstr(s, "-") != NULL) {
+		spacer = 1;
+	} else {
+		spacer = 0;
+	}
+	
+	/* if the number is of the maximum length for positive or negitive
+	 * numbers, then walk through each digit to see if it is within range */	
+	if((strlen(s) == INT_LEN && strstr(s, "-") != NULL) ||
+	   (strlen(s) == INT_LEN-1 && strstr(s, "-") == NULL)) {
+
+		temp[1] = '\0';
+		for(i = 0; i < sizeof(max_int_arr)/sizeof(int); i++){
+			temp[0] = s[i+spacer];
+			val = atoi(temp);	
+			
+			if(val > max_int_arr[i]){
+				/* return that there would be overflow*/
+				return 1;
+			} else if(val == max_int_arr[i]) {
+				/* check the next digit */
+				continue;
+			} else {
+				/* return that the value is in range */
+				return 0;
+			}
+		}
+	}
+	
+	return 0;
+}
 		
 /* get a filename from the user */
 void get_fname(char** file, int outfile)
@@ -218,10 +283,12 @@ void get_fname(char** file, int outfile)
 	char temp[110];
 	*file = NULL;
 
+	/* simply using local files dramatically simplifies the process*/
+	printf("FILE RESTRICTIONS: Files must be from this directory. Use local paths only\n");
 	/* keep trying to get a filename util the user gives valid input */
 	while(*file == NULL) {
 		if(!outfile) {
-			printf("Enter the name of the input file (without file extension): ");
+			printf("Enter the name an existing file for the input file (without file extension): ");
 		} else {
 			printf("Enter the name of the output file (without file extension): ");
 		}
@@ -241,15 +308,17 @@ void get_fname(char** file, int outfile)
 		if(non_alpha_chars(temp)){
 			printf("Invalid characters\n");
 			continue;
+		}
 		/* make sure the file name is not the same as the file that holds data */	
-		} else if(!strncmp(temp, "data", 5)) {
+		/*}
+		else if(!strncmp(temp, "data", 5)) {
 			printf("Cannot use that filename\n");
 			continue;
-		} else {
-			/* +1 to null terminate */
-			*file = (char*) malloc(sizeof(strlen(temp)+1) * sizeof(char));
-			strncpy(*file, temp, strlen(temp));
-		}		
+		} */ 
+		
+		/* +1 to null terminate */
+		*file = (char*) malloc(sizeof(strlen(temp)+1) * sizeof(char));
+		strncpy(*file, temp, strlen(temp));
 	}
 }
 
@@ -269,9 +338,8 @@ int non_alpha_chars(char* s)
 	int i;	
 	for( i = 0; i < strlen(s); i++) {
 		
-		/* checks if the character is a letter */
+		/* checks if the character is alphanumeric */
 		if(!isalnum(s[i])) {
-			printf("%c, %d\n", s[i], i);
 			return 1;
 		}
 	}
@@ -295,46 +363,54 @@ void append_extension(char **s)
 	*s = new_str;
 }
 
-void init_password(FILE * data)
+void init_password(char ** pw)
 {
 	char temp[50];
-	char *pw;
 	int valid_pw = 0;
 	
 	while(!valid_pw){
 		printf("Enter your password (6-24 characters): ");
-		fgets(temp, sizeof(temp)/sizeof(char) -1, stdin);
+		fgets(temp, (sizeof(temp)/sizeof(char))-1, stdin);
 		
-		if( strlen(temp) < 6 || strlen(temp) > 24 ) {
+		/* get rid of the newline character */
+		if (temp[strlen(temp)-1] == '\n') {
+			temp[strlen(temp)-1] = '\0';
+		}
+		
+		printf("strlen of pw is: %lu. pw is: %s\n", strlen(temp), temp);
+		if( strlen(temp) < PW_MIN || strlen(temp) > PW_MAX ) {
 			printf("Password not in size range\n");
 			continue;
 		}  
 		
-		pw = (char*) malloc((sizeof(strlen(temp))+1)*sizeof(char));
+		*pw = (char*) malloc((sizeof(strlen(temp)))*sizeof(char));
 		if( pw == NULL ){
 			fprintf(stderr, "Password memory allocation failed\n");
 			exit(EXIT_FAILURE);
 		}
 	
 		/* copy the password into its holder */
-		strncpy(pw, temp, strlen(temp));
+		strncpy(*pw, temp, strlen(temp));
 		valid_pw = 1;
 	}
 	
-	while(encrypt_password(&pw, data)){
+/*	while(encrypt_password(&pw, data)){
 		fprintf(stderr, "password encryption failed\n");
-			continue;
-	}
+		continue;
+	}*/
 }
 	
 /* slightly modified from the resposnse by indiv at:
  * http://stackoverflow.com/questions/9488919/openssl-password-to-key */
+ /* This is being scrapped for this project. The code is being retained 
+  * show the idea behind it, though its implementation was not
+  * entirely complete 
 int encrypt_password(char **pw, FILE * data) 
 {
 	const EVP_CIPHER *cipher;
     const EVP_MD *dgst = NULL;
     unsigned char key[EVP_MAX_KEY_LENGTH], iv[EVP_MAX_IV_LENGTH];
-    unsigned char *password = (unsigned char*) *pw;
+    unsigned char *password = (unsigned char*) pw;
     const unsigned char *salt = NULL;
     int i;
 
@@ -354,41 +430,50 @@ int encrypt_password(char **pw, FILE * data)
         return 1;
     }
 	
-	*pw = (char*) key;
-
-    /* these will be used for testing only presubmssion */
     printf("Key: "); for(i=0; i<cipher->key_len; ++i) { printf("%02x", key[i]); } printf("\n");
     printf("IV: "); for(i=0; i<cipher->iv_len; ++i) { printf("%02x", iv[i]); } printf("\n");
     
-    fprintf(data, "%s\n", key);
+    
+    *pw = malloc(sizeof(key)/sizeof(char));
+	for(i = 0; i < cipher->key_len; i++){
+		fprintf(data, "%02x", key[i]);
+		(*pw)[i] = (char) key[i];
+	}
+	fprintf(data, "\n");
     
     return 0;
 	
-}
+} */
 
-int verify_password(FILE* data)
+int verify_password(char ** pw)
 {
 	char temp[110];
-	char *pw, *line, *hash;
+	char *input;
 	int valid_pw = 0;
 	
-	line = hash = NULL;
 	while(!valid_pw){		
 		printf("Verify your password (6-24 characters): ");
-		fgets(temp, PW_LEN, stdin);
+		fgets(temp, (sizeof(temp)/sizeof(char))-1, stdin);
 		
-		if( strlen(temp) < 6 || strlen(temp) > 24 ) {
+		if (temp[strlen(temp)-1] == '\n') {
+			temp[strlen(temp)-1] = '\0';
+		}
+		
+		printf("strlen of pw is: %lu. pw is: %s\n", strlen(temp), temp);
+		if( strlen(temp) < PW_MIN || strlen(temp) > PW_MAX ) {
 			printf("Password not in size range\n");
 			continue;
 		}  
 		
 		/* copy the password into its holder */
-		pw = (char*) malloc((sizeof(temp)/sizeof(char)) + 1);
-		strncpy(pw, temp, strlen(temp));
+		input = (char*) malloc((sizeof(temp)/sizeof(char)) + 1);
+		strncpy(input, temp, strlen(temp));
 		break;
 	}
 	
 	/* repeat this until eof */
+	/* commented out along with other openssl encryption and file storge
+	 * password code
 	while(fgets(temp, LINE_LEN, data) != NULL) {
 	
 		hash = strtok(temp, DELIMIT);
@@ -407,15 +492,23 @@ int verify_password(FILE* data)
 			return 1;
 		} 
 		
-		if( !strncmp(pw, hash, HASH_LENGTH) ) {
+		if( !strncmp(line, hash, HASH_LENGTH) ) {
 			printf("Password accepted.\n");
 			return 0;
 		}
+	} */
+	
+	/* check that the input pw and the previously stored on are
+	 * both the same length */
+	if( strlen(input) != strlen(*pw) ){
+		return 0;
+	} else if (strncmp(input, *pw, strlen(input)) != 0) {
+		return 0;
 	}
 	
-	printf("Invalid password\n");
+	printf("password verified\n");
 	return 1;
-}
+} 
 
 /* posted by jscmier at :
  * http://stackoverflow.com/questions/2187474/i-am-not-able-to-flush-stdin */
