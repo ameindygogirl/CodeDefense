@@ -58,7 +58,9 @@ int main()
 	/* append the extension to the filenames */
 	append_extension(&in);
 	append_extension(&out);
-	
+
+   
+   
 	/* get the user's pw and store it */
 	init_password(&pw);	
 	
@@ -323,6 +325,7 @@ int check_overflow(char* s)
 /* get a filename from the user */
 void get_fname(char** file, int outfile)
 {
+   int i;
 	char temp[110];
 	*file = NULL;
 
@@ -344,14 +347,22 @@ void get_fname(char** file, int outfile)
 		}
 		
 		/* get rid of the newline character */
+     
 		if (temp[strlen(temp)-1] == '\n') {
 			temp[strlen(temp)-1] = '\0';
+         printf("I work too!");
 		}
+       if(temp[strlen(temp)-1] == '\r') {
+       	temp[strlen(temp)-1] = '\0';
+         printf("I work!");
+      }
 		
 		if(non_alpha_chars(temp)){
 			printf("Invalid characters\n");
 			continue;
 		}
+		
+		printf("filename: %s\n:", temp);
 		/* make sure the file name is not the same as the file that holds data */	
 		/*}
 		else if(!strncmp(temp, "data", 5)) {
@@ -360,9 +371,22 @@ void get_fname(char** file, int outfile)
 		} */ 
 		
 		/* +1 to null terminate */
-		*file = (char*) malloc(sizeof(strlen(temp)+1) * sizeof(char));
+      i = 0;
+      while(temp[i] != '\0')
+      {
+         printf("%c, %d\n", temp[i], i);
+         i++;
+      }
+
+		*file = (char*) calloc(strlen(temp)+1, 1);
 		strncpy(*file, temp, strlen(temp));
-	}
+      i = 0;
+      while((*file)[i] != '\0')
+      {
+         printf("%c, %d\n", (*file)[i], i);
+         i++;
+      }
+   }
 }
 
 /* return the length of the shorter of 2 strings */
@@ -393,17 +417,26 @@ int non_alpha_chars(char* s)
 void append_extension(char **s)
 {
 	char * new_str = (char*) malloc(strlen(*s) + sizeof(char)*(EXT_LEN+1));
-	
+	int i;
+   
 	if(new_str == NULL) {
 		printf("Memory alloc failed\n");
 		exit(EXIT_FAILURE);
 	}
 	
+   for( i = 0; i < strlen(*s); i++){
+      printf("%c", (*s)[i]);
+      printf(", %d\n", i);
+   }
+      
+   printf("|\n");
+   
 	new_str[0] = '\0';
-	strcat(new_str, *s);
-	strcat(new_str, EXTENSION);
-	
+	strncat(new_str, *s, strlen(*s));
+	strncat(new_str, EXTENSION, strlen(EXTENSION));
 	*s = new_str;
+   
+   printf("str: %s\n", *s);
 }
 
 void init_password(char ** pw)
@@ -416,6 +449,9 @@ void init_password(char ** pw)
 		fgets(temp, (sizeof(temp)/sizeof(char))-1, stdin);
 		
 		/* get rid of the newline character */
+      if (temp[strlen(temp)-2] == '\r') {
+			temp[strlen(temp)-2] = '\0';
+		}
 		if (temp[strlen(temp)-1] == '\n') {
 			temp[strlen(temp)-1] = '\0';
 		}
@@ -497,6 +533,9 @@ int verify_password(char ** pw)
 		printf("Verify your password (6-24 characters): ");
 		fgets(temp, (sizeof(temp)/sizeof(char))-1, stdin);
 		
+      if(temp[strlen(temp)-2] == '\r') {
+         	temp[strlen(temp)-2] = '\0';
+      }
 		if (temp[strlen(temp)-1] == '\n') {
 			temp[strlen(temp)-1] = '\0';
 		}

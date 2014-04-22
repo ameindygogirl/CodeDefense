@@ -1,0 +1,1 @@
+Java program (DefendTheFort.java) must be run from the command line.
