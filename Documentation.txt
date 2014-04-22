@@ -12,3 +12,15 @@ We defended against:
 -Numbers too large to fit in int (2147483648) //Doesn't allow for multiple inputs
 -Numbers too small to fit in int (-2147483649) //Doesn't allow for multiple inputs
 -Special characters and letters //Doesn't allow for multiple inputs
+
+In C
+-Names allow for '
+-Program crashes with large numbers of characters?
+-Skips first integer when large numbers of characters are entered?
+- (-2147483648) causes overflow
+- letters allowed as integers
+- Empty lines allowed for files
+- infile crashes program?
+-strange characters added to the end of input file
+- password doesn't verify after 2 invalid attempts?
+
