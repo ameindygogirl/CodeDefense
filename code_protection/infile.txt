@@ -1,4 +1,2 @@
-bryan
-anders
-0 + 0 = 0
-0 * 0 = 0
+This is the text from the input file
+wubwubwub dubdubdubdub...step

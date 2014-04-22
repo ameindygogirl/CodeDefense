@@ -20,6 +20,7 @@
 
 /*#define DATA_FILE "data.txt"*/
 
+int safe_ops(int a, int b);
 FILE* open_file(char* fname, const char * mode);
 void get_name(char **name, int lname);
 int valid_name(char *name);
