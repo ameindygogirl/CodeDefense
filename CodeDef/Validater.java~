@@ -1,31 +1,30 @@
-import java.util.*
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.lang.Integer;
 
 public final class Validater
 {
 	private final static int MAX_BUF = 50; 
 	private final static Pattern regx = Pattern.compile("^[a-zA-Z0-9]+$");
-	private final static Pattern regx2 = Pattern.compile("^[0-9]+$");
-	private static Matcher match;
+	
 	public Validater()	{}
 	
-	private boolean validateString( String name )
+	protected boolean validateString( String name )
 	{
 		String input =  name;
-		     				
-       match = regx.matcher(input);
+		Matcher match = regx.matcher(input);
         				
    		if ( match.matches() && input.length() < MAX_BUF )
    			return true;
    		
    		return false;	
 	}
-	private boolean validateInt( long number )
+	protected boolean validateInt( long number )
 	{
 		long n = number;
 			
-		match = regx2.matcher(n);
-			
-		if ( match.matches() && n < Integer.MAX_VALUE() )
+		if ( n <= Integer.MAX_VALUE && n >= Integer.MIN_VALUE )
 			return true;
 		
 		return false;		

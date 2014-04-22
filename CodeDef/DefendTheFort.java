@@ -1,12 +1,16 @@
 import java.io.*;
 import java.util.*;
+import java.io.Console;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 	
 public final class DefendTheFort // changed class to final
 {
 	private static Scanner kb = null;		// added global variables
 	private static Validater validater = null;
 	
-    public static void main(String[] args)
+    public static void main(String[] args) throws NoSuchAlgorithmException
     {
 			kb = new Scanner(System.in); //allocate scanner
 			
@@ -16,6 +20,7 @@ public final class DefendTheFort // changed class to final
 			String outputFile = "";
 			String firstName= "";
 			String lastName = "";
+			String securePassword = "";
 			long int1, int2;
 			
 			firstName = getFirstName();
@@ -27,11 +32,15 @@ public final class DefendTheFort // changed class to final
 			int1 = getFirstInteger();
 			int2 = getNextInteger();
 			
+			securePassword = SetPass();
+			
 			System.out.println("output file is: " + outputFile );
 			System.out.println("input file is: " + inputFile );
 			
 			System.out.println("first number is: " + int1 );
 			System.out.println("second number is: " + int2 );
+			
+			System.out.println("secure password is: " + securePassword );
 	 }
 	 
 	 private static String getFirstName()
@@ -136,11 +145,15 @@ public final class DefendTheFort // changed class to final
     	while ( !isValid )
     	{
     		try {
-    			System.out.print("Please integer #1, ( -2^31 < X > 2^31 -1 ): ");
-    			firstInt = kb.nextInt();    			
+    			System.out.print("Please enter integer #1, ( -2^31 < X > 2^31 -1 ): ");
+    			
+    			if ( kb.hasNextInt() )
+    				firstInt = kb.nextInt();    			
     			kb.nextLine();
     			
-    			isValid = validater.validateInt( firstInt );
+    			if ( firstInt != 0 )
+    				isValid = validater.validateInt( firstInt );
+    			System.out.println( "FIRST INT IS: " + firstInt );
     		}
     		catch ( NoSuchElementException e ) {
     			System.err.println("\nError: "+ e.getMessage() );
@@ -159,12 +172,13 @@ public final class DefendTheFort // changed class to final
     	while ( !isValid )
     	{
     		try {
-    			System.out.print("Please integer #2, ( -2^31 < X > 2^31 -1 ): ");
-    			if ( kb.hasNext() )
+    			System.out.print("Please enter integer #2, ( -2^31 < X > 2^31 -1 ): ");
+    			if ( kb.hasNextInt() )
     				secondInt = kb.nextInt();    			
     			kb.nextLine();
     			
-    			isValid = validater.validateInt( secondInt );
+    			if ( secondInt != 0 )
+    				isValid = validater.validateInt( secondInt );
     		}
     		catch ( NoSuchElementException e ) {
     			System.err.println("\nError: "+ e.getMessage() );
@@ -174,6 +188,41 @@ public final class DefendTheFort // changed class to final
     	}
     		return secondInt;
     }
+    
+    private static String SetPass() throws NoSuchAlgorithmException
+    {
+    	Console console = System.console();
+    	String securePass = "";
+    	
+    	if ( console != null ) // System.console() returns null if launched from inside an 
+    	{									// IDE such as Eclipse or Netbeans, works from within OS console
+    		char[] pass = console.readPassword("Enter your password: ");
+    		 
+    		securePass = getSecurePassword( String.valueOf( pass ) );
+    	}
+    	return securePass;
+    }
+    
+    private static String getSecurePassword( String passwordToHash )
+	{
+		String generatedPassword = null;
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			//md.update(salt.getBytes());
+			byte[] bytes = md.digest(passwordToHash.getBytes());
+			StringBuilder sb = new StringBuilder();
+			
+			for( int i=0; i< bytes.length; i++ )
+				sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+			
+			generatedPassword = sb.toString();
+		} 
+		catch (NoSuchAlgorithmException ne) 
+		{
+			System.out.println( ne.getMessage() );
+		}
+		return generatedPassword;
+	}
 }
 	
  
