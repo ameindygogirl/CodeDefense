@@ -58,8 +58,6 @@ int main()
 	/* append the extension to the filenames */
    append_extension(&in);
    append_extension(&out);
-
-   
    
 	/* get the user's pw and store it */
    init_password(&pw);	
@@ -375,7 +373,7 @@ void get_fname(char** file, int outfile)
    	} */ 
    	
    	/* +1 to null terminate */
-      *file = (char*) calloc(strlen(temp)+1, 1);
+      *file = (char*) calloc(strlen(temp)+1, sizeof(char));
       strncpy(*file, temp, strlen(temp));
    }
 }
@@ -408,26 +406,16 @@ int non_alpha_chars(char* s)
 void append_extension(char **s)
 {
    char * new_str = (char*) malloc(strlen(*s) + sizeof(char)*(EXT_LEN+1));
-   int i;
    
    if(new_str == NULL) {
       printf("Memory alloc failed\n");
       exit(EXIT_FAILURE);
    }
-	
-   for( i = 0; i < strlen(*s); i++){
-      printf("%c", (*s)[i]);
-      printf(", %d\n", i);
-   }
-      
-   printf("|\n");
    
    new_str[0] = '\0';
    strncat(new_str, *s, strlen(*s));
    strncat(new_str, EXTENSION, strlen(EXTENSION));
    *s = new_str;
-   
-   printf("str: %s\n", *s);
 }
 
 void init_password(char ** pw)
@@ -440,9 +428,6 @@ void init_password(char ** pw)
       fgets(temp, (sizeof(temp)/sizeof(char))-1, stdin);
    	
    	/* get rid of the newline character */
-      if (temp[strlen(temp)-2] == '\r') {
-         temp[strlen(temp)-2] = '\0';
-      }
       if (temp[strlen(temp)-1] == '\n') {
          temp[strlen(temp)-1] = '\0';
       }
@@ -452,7 +437,7 @@ void init_password(char ** pw)
          continue;
       }  
    	
-      *pw = (char*) malloc((sizeof(strlen(temp)))*sizeof(char));
+      *pw = (char*) calloc(strlen(temp)+1, sizeof(char));
       if( pw == NULL ){
          fprintf(stderr, "Password memory allocation failed\n");
          exit(EXIT_FAILURE);
@@ -463,7 +448,7 @@ void init_password(char ** pw)
       valid_pw = 1;
    }
 	
-/*	while(encrypt_password(&pw, data)){
+	/*	while(encrypt_password(&pw, data)){
 		fprintf(stderr, "password encryption failed\n");
 		continue;
 	}*/
@@ -533,16 +518,12 @@ int verify_password(char ** pw)
          continue;
       }  
    	
-      printf("before mem alloc\n");
-   	/* copy the password into its holder */
       input = (char*) calloc(strlen(temp) + 1, sizeof(char));
       if(input == NULL){
-         printf("pw mem alloc failed\n");
          exit(EXIT_FAILURE);
       }
-      printf("before strncpy\n");
+      /* copy the password into its holder */
       strncpy(input, temp, strlen(temp));
-      printf("after mem alloc\n");
       valid_pw = 1;
    }
 	
@@ -575,18 +556,14 @@ int verify_password(char ** pw)
 	
 	/* check that the input pw and the previously stored on are
 	 * both the same length */
-    printf("before strlen comare if\n");
    if( strlen(input) != strlen(*pw) ){
-      printf("input and pw are not same len\n");
       return 0;
    } 
-   printf("before strncmp else if\n");
-    if (strncmp(input, *pw, strlen(input)) != 0) {
-      printf("input and pw are not the same\n");
+    if (strncmp(input, *pw, strlen(*pw)) != 0) {
       return 0;
    }
 	
-   printf("password verified\n");
+   printf("Password verified.\n");
    return 1;
 } 
 
