@@ -1,5 +1,6 @@
 Java program (DefendTheFort.java) must be run from the command line.
 
+____________________________________________________________________________
 The c program, code_protection, from the cuddlebearsCodeProtection.c  and .h
 files using the included makefiles.  In imposes a number of restraints. In
 addition to length limit it imposes on names it also imposes the following:
@@ -23,3 +24,15 @@ addition to length limit it imposes on names it also imposes the following:
 -Passwords must be between 6 and 24 characters in length.
 
 -Passwords can only be comprised of alphanumeric charactes.
+
+The c program contains some commented out code, particularly at the
+bottom of the file. This was an incipient openssl pw encryption and
+hashing attempt that was abandoned because it was well beyond the
+requirements of the assignment and was becoming too time consuming.
+
+A note on using different operating systems:
+Several vulnerabilities have surfaced in Windows that did not show
+themselves when the program was run in Linux. Most of the ones we
+found have been fixed, but one regarding an error with long name
+inputs has not.  I would be surprised if there are not other such
+vulnerabilities which we simply did not discover.
