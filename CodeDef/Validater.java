@@ -10,7 +10,7 @@ public final class Validater
 	
 	public Validater()	{}
 	
-	protected boolean validateString( String name )
+	protected static boolean validateString( String name )
 	{
 		String input =  name;
 		Matcher match = regx.matcher(input);
@@ -20,7 +20,7 @@ public final class Validater
    		
    		return false;	
 	}
-	protected boolean validateInt( long number )
+	protected static boolean validateInt( long number )
 	{
 		long n = number;
 			
@@ -28,5 +28,11 @@ public final class Validater
 			return true;
 		
 		return false;		
+	}
+	protected static boolean authenticate( String authPass, String hashPass )
+	{
+		if ( authPass.equals( hashPass ) )
+			return true;
+		return false;
 	}	
 }
