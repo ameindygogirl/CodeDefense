@@ -1,3 +1,8 @@
+//Bryan Anders
+//Sami Awwad
+//Stacy Carlson
+//
+//Team Name: </3 Sunshine Cuddle Bears <3
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;

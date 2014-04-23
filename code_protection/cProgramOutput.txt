@@ -1,2 +1,6 @@
+Cuddle5
+Bears
+2345 + 12 = 2357
+2345 * 12 = 28140
 This is the text from the input file
 wubwubwub dubdubdubdub...step

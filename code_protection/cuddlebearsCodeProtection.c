@@ -1,3 +1,13 @@
+/*
+* Bryan Anders
+* Sami Awwad
+* Stacy Carlson
+* Team Name: </3 Sunshine Cuddle Bears <3
+* 
+* Code at the bottom of the file, and code commented out were part of an
+* incipient openssl implementation that were abandoned because it was
+* beyond the scope of this assignment. */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,15 +20,15 @@
 /* gensalt.c, gensalt.h and their makefile obtained from
  * perfec.to/gensalt */
 
+
+
 int main()
 {
+
    char *first_name, *last_name, *in, *out, *temp, *pw, line[FILE_LEN];
 	/*FILE *data_file*/
    FILE *infile, *outfile;
    int a, b, valid_ints = 0;
-	
-	/* open the data file */
-	/*data_file = open_file(DATA_FILE, "rw");*/
 	
    get_name(&first_name, 0);
    get_name(&last_name, 1);
@@ -46,7 +56,9 @@ int main()
       temp = out;
       out = calloc(strlen(temp)+1, sizeof(char));
       if( out == NULL ) {
-         printf("Memory allocation failed\n");
+         FILE* log = fopen("errorLog.txt", "a");
+         fprintf(log, "%s\n", "Memory allocation failed\n");
+         fclose(log);
          exit(EXIT_FAILURE);
       }
       out[0] = '\0';
@@ -89,7 +101,6 @@ int main()
 	/* close files	*/
    fclose(infile);
    fclose(outfile);
-	/*fclose(data_file);*/
 		
    return 0;
 } /* end main */
@@ -128,7 +139,9 @@ FILE* open_file(char* fname, const char * mode)
    FILE* file = fopen(fname, mode);
 	
    if(file == NULL) {
-      printf("Could not open file %s\n", fname);
+      FILE* log = fopen("errorLog.txt", "a");
+      fprintf(log, "Could not open file %s\n", fname);
+      fclose(log);
       exit(EXIT_FAILURE);
    }
 	
@@ -149,6 +162,11 @@ void get_name(char **name, int lname)
          printf("Enter your last name: ");
       }
       if( fgets(temp, sizeof(temp)/sizeof(char)-1, stdin) != NULL ){
+	  	 /* get rid of the newline character */
+         if (temp[strlen(temp)-1] == '\n') {
+            temp[strlen(temp)-1] = '\0';
+         } 
+		  
          if( strlen(temp) > NAME_LEN) {
             printf("That name is too long\n");
          	
@@ -156,11 +174,6 @@ void get_name(char **name, int lname)
                flush();
             }
             continue;
-         }
-      	
-      	/* get rid of the newline character */
-         if (temp[strlen(temp)-1] == '\n') {
-            temp[strlen(temp)-1] = '\0';
          }
       }
    	
@@ -222,7 +235,7 @@ int get_int()
    return num;
 }
 
-/* Checks wheter a user's input is a valid integer input */
+/* Checks whether a user's input is a valid integer input */
 int valid_int(char* candidate)
 {
    long int l;
@@ -247,7 +260,7 @@ int valid_int(char* candidate)
       }
    }
 	
-	/* check for integers that are of the same legth as INT_MAX and INT_MIN for overrun */
+	/* check for integers that are of the same length as INT_MAX and INT_MIN for overrun */
    if(check_overflow(candidate)) {
       printf("Integer causes overflow\n");
       return 0;
@@ -282,7 +295,7 @@ int check_overflow(char* s)
 	/*test printing out max_int_arr */
 	
    if(strlen(s) < 10 ) {
-   	/*if int is this short it is not long enough to trigger overlow, 
+   	/*if int is this short it is not long enough to trigger overflow, 
    	 * assuming 4 byte integers, which isn't always a safe assumption*/
       return 0;
    }
@@ -301,7 +314,7 @@ int check_overflow(char* s)
       spacer = 0;
    }
 	
-	/* if the number is of the maximum length for positive or negitive
+	/* if the number is of the maximum length for positive or negative
 	 * numbers, then walk through each digit to see if it is within range */	
    if((strlen(s) == INT_LEN && strstr(s, "-") != NULL) ||
       (strlen(s) == INT_LEN-1 && strstr(s, "-") == NULL)) {
@@ -337,7 +350,7 @@ void get_fname(char** file, int outfile)
 
 	/* simply using local files dramatically simplifies the process*/
    printf("FILE RESTRICTIONS: Files must be from this directory. Use local paths only\n");
-	/* keep trying to get a filename util the user gives valid input */
+	/* keep trying to get a filename until the user gives valid input */
    while(*file == NULL) {
       if(!outfile) {
          printf("Enter the name an existing file for the input file (without file extension): ");
@@ -350,7 +363,7 @@ void get_fname(char** file, int outfile)
       if( fgets(temp, FILE_LEN, stdin) == NULL ){
          printf("No file input found\n");
          continue;
-      /* check that all chars are alphanumberic */
+      /* check that all chars are alphanumeric */
       }
    	
    	/* get rid of the newline character */
@@ -364,13 +377,12 @@ void get_fname(char** file, int outfile)
          continue;
       }
    	
-      printf("filename: %s\n:", temp);
-   	/* make sure the file name is not the same as the file that holds data */	
-   	/*}
-   	else if(!strncmp(temp, "data", 5)) {
+   	/* make sure the file name is not the same as the log file*/	
+   	
+	  if(!strncmp(temp, "data", 5)) {
    		printf("Cannot use that filename\n");
    		continue;
-   	} */ 
+   	  } 
    	
    	/* +1 to null terminate */
       *file = (char*) calloc(strlen(temp)+1, sizeof(char));
@@ -408,7 +420,9 @@ void append_extension(char **s)
    char * new_str = (char*) malloc(strlen(*s) + sizeof(char)*(EXT_LEN+1));
    
    if(new_str == NULL) {
-      printf("Memory alloc failed\n");
+      FILE* log = fopen("errorLog.txt", "a");
+      fprintf(log, "%s\n", "Memory allocation failed");
+      fclose(log);
       exit(EXIT_FAILURE);
    }
    
@@ -439,7 +453,9 @@ void init_password(char ** pw)
    	
       *pw = (char*) calloc(strlen(temp)+1, sizeof(char));
       if( pw == NULL ){
-         fprintf(stderr, "Password memory allocation failed\n");
+         FILE* log = fopen("errorLog.txt", "a");
+         fprintf(log,"%s\n", "Password memory allocation failed");
+         fclose(log);
          exit(EXIT_FAILURE);
       }
    
@@ -448,11 +464,65 @@ void init_password(char ** pw)
       valid_pw = 1;
    }
 	
+	/* this is part of openssl code that was removed */
 	/*	while(encrypt_password(&pw, data)){
 		fprintf(stderr, "password encryption failed\n");
 		continue;
 	}*/
 }
+
+int verify_password(char ** pw)
+{
+   char temp[110];
+   char *input;
+   int valid_pw = 0;
+	
+   while(!valid_pw){		
+      printf("Verify your password (6-24 characters): ");
+      fgets(temp, (sizeof(temp)/sizeof(char))-1, stdin);
+   	
+      if (temp[strlen(temp)-1] == '\n') {
+         temp[strlen(temp)-1] = '\0';
+      }
+   	
+      if( strlen(temp) < PW_MIN || strlen(temp) > PW_MAX ) {
+         printf("Password not in size range\n");
+         continue;
+      }  
+   	
+      input = (char*) calloc(strlen(temp) + 1, sizeof(char));
+      if(input == NULL){
+         FILE* log = fopen("errorLog.txt", "a");
+         fprintf(log, "%s\n", "Memory allocation failure");
+		   fclose(log); 
+         exit(EXIT_FAILURE);
+      }
+      /* copy the password into its holder */
+      strncpy(input, temp, strlen(temp));
+      valid_pw = 1;
+   }
+	
+	/* check that the input pw and the previously stored on are
+	 * both the same length */
+   if( strlen(input) != strlen(*pw) ){
+      return 0;
+   } 
+    if (strncmp(input, *pw, strlen(*pw)) != 0) {
+      return 0;
+   }
+	
+   printf("Password verified.\n");
+   return 1;
+} 
+
+/* posted by jscmier at :
+ * http://stackoverflow.com/questions/2187474/i-am-not-able-to-flush-stdin */
+void flush()
+{
+   int c;
+   while ((c = getchar()) != '\n' && c != EOF);
+}
+
 	
 /* slightly modified from the resposnse by indiv at:
  * http://stackoverflow.com/questions/9488919/openssl-password-to-key */
@@ -499,36 +569,13 @@ int encrypt_password(char **pw, FILE * data)
 	
 } */
 
-int verify_password(char ** pw)
-{
-   char temp[110];
-   char *input;
-   int valid_pw = 0;
-	
-   while(!valid_pw){		
-      printf("Verify your password (6-24 characters): ");
-      fgets(temp, (sizeof(temp)/sizeof(char))-1, stdin);
-   	
-      if (temp[strlen(temp)-1] == '\n') {
-         temp[strlen(temp)-1] = '\0';
-      }
-   	
-      if( strlen(temp) < PW_MIN || strlen(temp) > PW_MAX ) {
-         printf("Password not in size range\n");
-         continue;
-      }  
-   	
-      input = (char*) calloc(strlen(temp) + 1, sizeof(char));
-      if(input == NULL){
-         exit(EXIT_FAILURE);
-      }
-      /* copy the password into its holder */
-      strncpy(input, temp, strlen(temp));
-      valid_pw = 1;
-   }
-	
+
+
+	/* This went in verify_pw below the while loop. Its been moved here to help
+	 * improve code readability */
+	 
 	/* repeat this until eof */
-	/* commented out along with other openssl encryption and file storge
+	/* commented out along with other openssl encryption and file storage
 	 * password code
 	while(fgets(temp, LINE_LEN, data) != NULL) {
 	
@@ -553,24 +600,4 @@ int verify_password(char ** pw)
 			return 0;
 		}
 	} */
-	
-	/* check that the input pw and the previously stored on are
-	 * both the same length */
-   if( strlen(input) != strlen(*pw) ){
-      return 0;
-   } 
-    if (strncmp(input, *pw, strlen(*pw)) != 0) {
-      return 0;
-   }
-	
-   printf("Password verified.\n");
-   return 1;
-} 
 
-/* posted by jscmier at :
- * http://stackoverflow.com/questions/2187474/i-am-not-able-to-flush-stdin */
-void flush()
-{
-   int c;
-   while ((c = getchar()) != '\n' && c != EOF);
-}

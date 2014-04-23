@@ -17,6 +17,7 @@
 #define EXTENSION ".txt"
 #define EXT_LEN 4
 #define TEMPLATE "_[A-Za-z0-9./]{8}"
+#define LOG_FILE "log.txt"
 
 /*#define DATA_FILE "data.txt"*/
 

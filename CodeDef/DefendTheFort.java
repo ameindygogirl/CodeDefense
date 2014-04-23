@@ -1,3 +1,8 @@
+//Bryan Anders
+//Sami Awwad
+//Stacy Carlson
+//
+//Team Name: </3 Sunshine Cuddle Bears <3
 import java.io.*;
 import java.util.*;
 import java.io.Console;
@@ -50,11 +55,21 @@ public final class DefendTheFort // changed class to final
 				printOutput( firstName, lastName, int1, int2 );
 			}catch ( IOException ioe ) {
 			errorPrint.write("\nError: "+ ioe.getMessage() );
+			}
+			catch(NullPointerException e){
+			errorPrint.write("\nError: "+ e.getMessage() );
 			}finally{
-				errorPrint.close();
 				printer.close();
 				kb.close();
-				fileRead.close();
+				try
+				{
+					fileRead.close();
+				}
+				catch(NullPointerException e)
+				{
+					errorPrint.write("\nError: "+ e.getMessage());
+				}
+				errorPrint.close();
 			}
 				
 	 }

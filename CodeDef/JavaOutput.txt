@@ -1,0 +1,10 @@
+First Name: 	Cuddle
+Last Name: 	Bears
+34 + -245 = -211
+34 * -245 = -8330
+
+First Name: 	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+Last Name: 	Carlson
+-2147483648 + 23 = -2147483625
+-2147483648 * 23 = -49392123904
+
